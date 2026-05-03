@@ -760,7 +760,24 @@ int main() {
         drawCeilingFan(program, fanMetalTex, fanBladeTex, 3.0f, 4.85f, 3.0f, currentTime);
 
 
+        // WHITEBOARD
+        drawBox(program, createTexture1x1(101, 67, 33), 0.0f, 2.55f, -4.35f, 4.9f, 2.05f, 0.12f);
+        drawBox(program, createTexture1x1(255, 255, 255), 0.0f, 2.55f, -4.27f, 4.5f, 1.8f, 0.04f);
+        drawBox(program, headerTex, 0.0f, 3.9f, -4.25f, 4.3f, 0.45f, 0.02f);
+        drawBox(program, lecturerTex, 0.0f, 3.2f, -4.25f, 4.3f, 0.45f, 0.02f);
+        drawBox(program, groupTex, 0.0f, 2.5f, -4.25f, 4.3f, 0.45f, 0.02f);
+        // TEACHER TABLE
+        drawDesk(program, furnitureTex, 0.0f, 0.0f, -2.9f, 2.4f, 0.85f, 0.9f);
+        // STUDENT DESKS + CHAIRS
+        const float xs[3] = { -3.4f, 0.0f, 3.4f };
+        const float zs[2] = { 0.8f, 2.9f };
 
+        for (float z : zs) {
+            for (float x : xs) {
+                drawDesk(program, furnitureTex, x, 0.0f, z, 1.25f, 0.75f, 0.75f);
+                drawChair(program, furnitureTex, x, 0.0f, z + 1.0f);
+            }
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
