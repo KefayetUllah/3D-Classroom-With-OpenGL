@@ -1,6 +1,5 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -97,14 +96,15 @@ static Mat4 rotateY(float deg) {
     return r;
 }
 
+// FIX: Added missing rotateZ function
 static Mat4 rotateZ(float deg) {
     float a = deg * PI / 180.0f;
     float c = std::cos(a);
     float s = std::sin(a);
     Mat4 r = identity();
     r.m[0] = c;
-    r.m[1] = s;
-    r.m[4] = -s;
+    r.m[1] = -s;
+    r.m[4] = s;
     r.m[5] = c;
     return r;
 }
@@ -251,87 +251,46 @@ static GLuint createStripeTexture(int width, int height,
     return tex;
 }
 
-// Better bitmap font - 8x12 pixels per character
 static unsigned char getCharPixel(char c, int x, int y) {
-    // Simple 8x12 font patterns for common characters
     static const unsigned char fontData[][12] = {
-        // A
         {0x00,0x18,0x24,0x24,0x3C,0x42,0x42,0x42,0x42,0x42,0x00,0x00},
-        // B
         {0x00,0x3C,0x42,0x42,0x3C,0x42,0x42,0x42,0x42,0x3C,0x00,0x00},
-        // C
         {0x00,0x18,0x24,0x40,0x40,0x40,0x40,0x40,0x24,0x18,0x00,0x00},
-        // D
         {0x00,0x38,0x44,0x42,0x42,0x42,0x42,0x42,0x44,0x38,0x00,0x00},
-        // E
         {0x00,0x7C,0x40,0x40,0x78,0x40,0x40,0x40,0x40,0x7C,0x00,0x00},
-        // F
         {0x00,0x7C,0x40,0x40,0x78,0x40,0x40,0x40,0x40,0x40,0x00,0x00},
-        // G
         {0x00,0x18,0x24,0x40,0x40,0x40,0x5C,0x44,0x24,0x18,0x00,0x00},
-        // H
         {0x00,0x42,0x42,0x42,0x42,0x7E,0x42,0x42,0x42,0x42,0x00,0x00},
-        // I
         {0x00,0x3C,0x18,0x18,0x18,0x18,0x18,0x18,0x18,0x3C,0x00,0x00},
-        // J
         {0x00,0x1E,0x08,0x08,0x08,0x08,0x08,0x48,0x48,0x30,0x00,0x00},
-        // K
         {0x00,0x42,0x44,0x48,0x50,0x60,0x50,0x48,0x44,0x42,0x00,0x00},
-        // L
         {0x00,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x40,0x7C,0x00,0x00},
-        // M
         {0x00,0x42,0x66,0x66,0x5A,0x5A,0x42,0x42,0x42,0x42,0x00,0x00},
-        // N
         {0x00,0x42,0x62,0x52,0x4A,0x46,0x42,0x42,0x42,0x42,0x00,0x00},
-        // O
         {0x00,0x18,0x24,0x42,0x42,0x42,0x42,0x42,0x24,0x18,0x00,0x00},
-        // P
         {0x00,0x3C,0x42,0x42,0x42,0x3C,0x40,0x40,0x40,0x40,0x00,0x00},
-        // Q
         {0x00,0x18,0x24,0x42,0x42,0x42,0x42,0x4A,0x24,0x1A,0x00,0x00},
-        // R
         {0x00,0x3C,0x42,0x42,0x42,0x3C,0x48,0x44,0x42,0x42,0x00,0x00},
-        // S
         {0x00,0x1C,0x22,0x20,0x1C,0x02,0x02,0x22,0x22,0x1C,0x00,0x00},
-        // T
         {0x00,0x7E,0x18,0x18,0x18,0x18,0x18,0x18,0x18,0x18,0x00,0x00},
-        // U
         {0x00,0x42,0x42,0x42,0x42,0x42,0x42,0x42,0x24,0x18,0x00,0x00},
-        // V
         {0x00,0x42,0x42,0x42,0x42,0x42,0x24,0x24,0x18,0x18,0x00,0x00},
-        // W
         {0x00,0x42,0x42,0x42,0x42,0x5A,0x5A,0x66,0x66,0x42,0x00,0x00},
-        // X
         {0x00,0x42,0x42,0x24,0x24,0x18,0x18,0x24,0x24,0x42,0x00,0x00},
-        // Y
         {0x00,0x42,0x42,0x24,0x24,0x18,0x18,0x18,0x18,0x18,0x00,0x00},
-        // Z
         {0x00,0x7C,0x02,0x04,0x08,0x10,0x20,0x40,0x40,0x7C,0x00,0x00},
-        // 0
         {0x00,0x18,0x24,0x42,0x46,0x4A,0x52,0x62,0x42,0x3C,0x00,0x00},
-        // 1
         {0x00,0x18,0x38,0x18,0x18,0x18,0x18,0x18,0x18,0x7E,0x00,0x00},
-        // 2
         {0x00,0x3C,0x42,0x02,0x04,0x08,0x10,0x20,0x40,0x7E,0x00,0x00},
-        // 3
         {0x00,0x3C,0x42,0x02,0x04,0x18,0x04,0x02,0x42,0x3C,0x00,0x00},
-        // 4
         {0x00,0x04,0x0C,0x14,0x24,0x44,0x7E,0x04,0x04,0x0E,0x00,0x00},
-        // 5
         {0x00,0x7E,0x40,0x40,0x7C,0x02,0x02,0x02,0x42,0x3C,0x00,0x00},
-        // 6
         {0x00,0x1C,0x20,0x40,0x7C,0x42,0x42,0x42,0x42,0x3C,0x00,0x00},
-        // 7
         {0x00,0x7E,0x02,0x04,0x08,0x10,0x10,0x10,0x10,0x10,0x00,0x00},
-        // 8
         {0x00,0x3C,0x42,0x42,0x42,0x3C,0x42,0x42,0x42,0x3C,0x00,0x00},
-        // 9
         {0x00,0x3C,0x42,0x42,0x42,0x3E,0x02,0x02,0x04,0x38,0x00,0x00},
-        // Space
         {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
-        // :
         {0x00,0x00,0x00,0x18,0x18,0x00,0x00,0x18,0x18,0x00,0x00,0x00},
-        // -
         {0x00,0x00,0x00,0x00,0x00,0x7E,0x00,0x00,0x00,0x00,0x00,0x00},
     };
 
@@ -352,14 +311,12 @@ static GLuint createTextTexture(const char* text, int texWidth, int texHeight,
 
     std::vector<unsigned char> pixels(texWidth * texHeight * 3, 255);
 
-    // Fill with white background
     for (int i = 0; i < texWidth * texHeight; ++i) {
         pixels[i * 3 + 0] = 255;
         pixels[i * 3 + 1] = 255;
         pixels[i * 3 + 2] = 255;
     }
 
-    // Render text - start from top-left
     int startX = 10;
     int startY = texHeight - 5;
     int charWidth = 8;
@@ -373,7 +330,6 @@ static GLuint createTextTexture(const char* text, int texWidth, int texHeight,
             continue;
         }
 
-        // Render character
         for (int cy = 0; cy < charHeight && (startY - cy) >= 0; ++cy) {
             for (int cx = 0; cx < charWidth; ++cx) {
                 if (getCharPixel(*p, cx, cy)) {
@@ -408,7 +364,6 @@ static GLuint cubeVBO = 0;
 static void initCubeMesh() {
     float vertices[] = {
         // positions            // normals         // texcoords
-        // Front
         -0.5f, -0.5f,  0.5f,    0, 0, 1,          0, 0,
          0.5f, -0.5f,  0.5f,    0, 0, 1,          1, 0,
          0.5f,  0.5f,  0.5f,    0, 0, 1,          1, 1,
@@ -416,7 +371,6 @@ static void initCubeMesh() {
         -0.5f,  0.5f,  0.5f,    0, 0, 1,          0, 1,
         -0.5f, -0.5f,  0.5f,    0, 0, 1,          0, 0,
 
-        // Back
         -0.5f, -0.5f, -0.5f,    0, 0, -1,         1, 0,
         -0.5f,  0.5f, -0.5f,    0, 0, -1,         1, 1,
          0.5f,  0.5f, -0.5f,    0, 0, -1,         0, 1,
@@ -424,7 +378,6 @@ static void initCubeMesh() {
          0.5f, -0.5f, -0.5f,    0, 0, -1,         0, 0,
         -0.5f, -0.5f, -0.5f,    0, 0, -1,         1, 0,
 
-        // Left
         -0.5f, -0.5f, -0.5f,   -1, 0, 0,          0, 0,
         -0.5f, -0.5f,  0.5f,   -1, 0, 0,          1, 0,
         -0.5f,  0.5f,  0.5f,   -1, 0, 0,          1, 1,
@@ -432,7 +385,6 @@ static void initCubeMesh() {
         -0.5f,  0.5f, -0.5f,   -1, 0, 0,          0, 1,
         -0.5f, -0.5f, -0.5f,   -1, 0, 0,          0, 0,
 
-        // Right
          0.5f, -0.5f, -0.5f,    1, 0, 0,          1, 0,
          0.5f,  0.5f,  0.5f,    1, 0, 0,          0, 1,
          0.5f, -0.5f,  0.5f,    1, 0, 0,          0, 0,
@@ -440,7 +392,6 @@ static void initCubeMesh() {
          0.5f, -0.5f, -0.5f,    1, 0, 0,          1, 0,
          0.5f,  0.5f, -0.5f,    1, 0, 0,          1, 1,
 
-         // Top
          -0.5f,  0.5f, -0.5f,    0, 1, 0,          0, 1,
          -0.5f,  0.5f,  0.5f,    0, 1, 0,          0, 0,
           0.5f,  0.5f,  0.5f,    0, 1, 0,          1, 0,
@@ -448,7 +399,6 @@ static void initCubeMesh() {
           0.5f,  0.5f, -0.5f,    0, 1, 0,          1, 1,
          -0.5f,  0.5f, -0.5f,    0, 1, 0,          0, 1,
 
-         // Bottom
          -0.5f, -0.5f, -0.5f,    0, -1, 0,         0, 0,
           0.5f, -0.5f,  0.5f,    0, -1, 0,         1, 1,
          -0.5f, -0.5f,  0.5f,    0, -1, 0,         0, 1,
@@ -545,6 +495,82 @@ static void drawChair(GLuint program, GLuint woodTex, float x, float y, float z)
     drawBox(program, woodTex, x, y + legH + 0.5f, z + 0.32f, 0.7f, 0.7f, 0.08f);
 }
 
+// Camera controls
+static float cameraYaw = -90.0f;
+static float cameraPitch = 0.0f;
+static float cameraX = 0.0f;
+static float cameraY = 2.8f;
+static float cameraZ = 10.5f;
+static bool firstMouse = true;
+static float lastX = 640.0f;
+static float lastY = 360.0f;
+
+static void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+    if (firstMouse) {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    cameraYaw += xoffset;
+    cameraPitch += yoffset;
+
+    if (cameraPitch > 89.0f) cameraPitch = 89.0f;
+    if (cameraPitch < -89.0f) cameraPitch = -89.0f;
+}
+
+static void processInput(GLFWwindow* window, float deltaTime) {
+    float speed = 5.0f * deltaTime;
+
+    Vec3 forward;
+    forward.x = cos(cameraYaw * PI / 180.0f) * cos(cameraPitch * PI / 180.0f);
+    forward.y = sin(cameraPitch * PI / 180.0f);
+    forward.z = sin(cameraYaw * PI / 180.0f) * cos(cameraPitch * PI / 180.0f);
+    forward = normalize(forward);
+
+    Vec3 right;
+    right.x = cos(cameraYaw * PI / 180.0f);
+    right.y = 0;
+    right.z = sin(cameraYaw * PI / 180.0f);
+    right = normalize(right);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        cameraX += forward.x * speed;
+        cameraY += forward.y * speed;
+        cameraZ += forward.z * speed;
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        cameraX -= forward.x * speed;
+        cameraY -= forward.y * speed;
+        cameraZ -= forward.z * speed;
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        cameraX -= right.x * speed;
+        cameraZ -= right.z * speed;
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        cameraX += right.x * speed;
+        cameraZ += right.z * speed;
+    }
+
+    // Clamp camera position to room boundaries
+    if (cameraX < -5.5f) cameraX = -5.5f;
+    if (cameraX > 5.5f) cameraX = 5.5f;
+    if (cameraZ < -4.0f) cameraZ = -4.0f;
+    if (cameraZ > 4.0f) cameraZ = 4.0f;
+    if (cameraY < 1.0f) cameraY = 1.0f;
+    if (cameraY > 4.0f) cameraY = 4.0f;
+}
+
 int main() {
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW\n";
@@ -559,7 +585,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "3D Classroom - CSE 4288", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "3D Classroom - CSE 4288 (Mouse Controlled Camera)", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window\n";
         glfwTerminate();
@@ -568,6 +594,8 @@ int main() {
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cerr << "Failed to initialize GLAD\n";
@@ -639,7 +667,7 @@ int main() {
 
     initCubeMesh();
 
-    // === TEXTURES ===
+    // TEXTURES
     GLuint furnitureTex = createStripeTexture(128, 128, 180, 140, 90, 140, 100, 60);
     GLuint wallTex = createTexture1x1(255, 255, 255);
     GLuint floorTex = createCheckerTexture(128, 128, 190, 180, 165, 170, 160, 145);
@@ -649,8 +677,6 @@ int main() {
     GLuint fanMetalTex = createTexture1x1(180, 180, 190);
     GLuint fanBladeTex = createTexture1x1(220, 220, 230);
     GLuint samsungTex = createTextTexture("SAMSUNG", 128, 32, 10, 10, 150);
-
-    // IMPROVED: Clear, bold text with high contrast
     GLuint headerTex = createTextTexture("CSE 4288: Computer Graphics Lab", 640, 80, 0, 0, 100);
     GLuint lecturerTex = createTextTexture("Lecturer : Maimuna Chowdhury Disha", 640, 80, 0, 80, 0);
     GLuint groupTex = createTextTexture("Project Group ID : 405, 332, 336, 310", 640, 80, 100, 0, 0);
@@ -660,9 +686,21 @@ int main() {
 
     double lastTime = glfwGetTime();
 
+    std::cout << "=== CONTROLS ===" << std::endl;
+    std::cout << "Mouse: Look around" << std::endl;
+    std::cout << "WASD: Move camera" << std::endl;
+    std::cout << "ESC: Exit" << std::endl;
+    std::cout << "================" << std::endl;
+
     while (!glfwWindowShouldClose(window)) {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
+
+        double currentTime = glfwGetTime();
+        float deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        processInput(window, deltaTime);
 
         glfwGetFramebufferSize(window, &width, &height);
         float aspect = (height > 0) ? static_cast<float>(width) / static_cast<float>(height) : 16.0f / 9.0f;
@@ -670,7 +708,14 @@ int main() {
         glClearColor(0.78f, 0.86f, 0.95f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Mat4 view = lookAt({ 0.0f, 2.8f, 10.5f }, { 0.0f, 1.8f, -1.5f }, { 0.0f, 1.0f, 0.0f });
+        // Calculate camera direction
+        Vec3 cameraPos = { cameraX, cameraY, cameraZ };
+        Vec3 cameraTarget;
+        cameraTarget.x = cameraX + cos(cameraYaw * PI / 180.0f) * cos(cameraPitch * PI / 180.0f);
+        cameraTarget.y = cameraY + sin(cameraPitch * PI / 180.0f);
+        cameraTarget.z = cameraZ + sin(cameraYaw * PI / 180.0f) * cos(cameraPitch * PI / 180.0f);
+
+        Mat4 view = lookAt(cameraPos, cameraTarget, { 0.0f, 1.0f, 0.0f });
         Mat4 proj = perspective(45.0f, aspect, 0.1f, 100.0f);
 
         glUseProgram(program);
@@ -681,68 +726,41 @@ int main() {
         glUniform3f(glGetUniformLocation(program, "uAmbientColor"), 0.35f, 0.35f, 0.38f);
         glUniform3f(glGetUniformLocation(program, "uDiffuseColor"), 0.95f, 0.95f, 0.95f);
         glUniform3f(glGetUniformLocation(program, "uSpecColor"), 0.22f, 0.22f, 0.22f);
-        glUniform3f(glGetUniformLocation(program, "uViewPos"), 0.0f, 2.8f, 10.5f);
+        glUniform3f(glGetUniformLocation(program, "uViewPos"), cameraX, cameraY, cameraZ);
 
-        double currentTime = glfwGetTime();
-        float deltaTime = currentTime - lastTime;
-        lastTime = currentTime;
-
-        // === ROOM ===
+        // ROOM
         drawBox(program, floorTex, 0.0f, -0.05f, 0.0f, 12.0f, 0.1f, 9.0f);
         drawBox(program, wallTex, 0.0f, 2.5f, -4.5f, 12.0f, 5.0f, 0.1f);
         drawBox(program, wallTex, -6.0f, 2.5f, 0.0f, 0.1f, 5.0f, 9.0f);
         drawBox(program, wallTex, 6.0f, 2.5f, 0.0f, 0.1f, 5.0f, 9.0f);
         drawBox(program, wallTex, 0.0f, 5.0f, 0.0f, 12.0f, 0.1f, 9.0f);
 
-        // === WHITEBOARD with CLEAR TEXT ===
-        // Dark brown frame
-        drawBox(program, createTexture1x1(101, 67, 33), 0.0f, 2.55f, -4.35f, 4.9f, 2.05f, 0.12f);
-        // White board surface
-        drawBox(program, createTexture1x1(255, 255, 255), 0.0f, 2.55f, -4.27f, 4.5f, 1.8f, 0.04f);
+        
 
-        // Text lines - positioned with proper spacing and larger size
-        // Header - Top line (Dark Blue)
-        drawBox(program, headerTex, 0.0f, 3.9f, -4.25f, 4.3f, 0.45f, 0.02f);
 
-        // Lecturer - Middle line (Dark Green)
-        drawBox(program, lecturerTex, 0.0f, 3.2f, -4.25f, 4.3f, 0.45f, 0.02f);
 
-        // Group ID - Bottom line (Dark Red)
-        drawBox(program, groupTex, 0.0f, 2.5f, -4.25f, 4.3f, 0.45f, 0.02f);
-
-        // === TEACHER TABLE ===
-        drawDesk(program, furnitureTex, 0.0f, 0.0f, -2.9f, 2.4f, 0.85f, 0.9f);
-
-        // === PROJECTOR ===
+        // PROJECTOR
         drawBox(program, projectorTex, 0.0f, 4.35f, -0.6f, 0.8f, 0.2f, 0.5f);
         drawBox(program, projectorTex, 0.0f, 4.65f, -0.6f, 0.08f, 0.6f, 0.08f);
 
-        // === AC UNIT with SAMSUNG ===
+        // AC UNIT with SAMSUNG
         drawBox(program, acTex, -5.75f, 3.85f, 2.1f, 1.2f, 0.7f, 0.5f);
         drawBox(program, wallTex, -5.75f, 3.65f, 2.1f, 1.0f, 0.05f, 0.45f);
         drawBox(program, samsungTex, -5.75f, 4.0f, 2.35f, 0.6f, 0.15f, 0.02f);
 
-        // === CEILING LIGHTS ===
+        // CEILING LIGHTS
         drawCeilingLight(program, lightTex, -4.0f, 4.95f, 0.0f);
         drawCeilingLight(program, lightTex, 0.0f, 4.95f, 0.0f);
         drawCeilingLight(program, lightTex, 4.0f, 4.95f, 0.0f);
         drawCeilingLight(program, lightTex, -2.0f, 4.95f, -2.0f);
         drawCeilingLight(program, lightTex, 2.0f, 4.95f, -2.0f);
 
-        // === CEILING FANS ===
+        // CEILING FANS
         drawCeilingFan(program, fanMetalTex, fanBladeTex, -3.0f, 4.85f, 3.0f, currentTime);
         drawCeilingFan(program, fanMetalTex, fanBladeTex, 3.0f, 4.85f, 3.0f, currentTime);
 
-        // === STUDENT DESKS + CHAIRS ===
-        const float xs[3] = { -3.4f, 0.0f, 3.4f };
-        const float zs[2] = { 0.8f, 2.9f };
 
-        for (float z : zs) {
-            for (float x : xs) {
-                drawDesk(program, furnitureTex, x, 0.0f, z, 1.25f, 0.75f, 0.75f);
-                drawChair(program, furnitureTex, x, 0.0f, z + 1.0f);
-            }
-        }
+
 
         glfwSwapBuffers(window);
         glfwPollEvents();
